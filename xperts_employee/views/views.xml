@@ -1,0 +1,675 @@
+<odoo>
+  <data>
+
+    <record model="ir.ui.view" id="filter_add_project_partner">
+      <field name="name">filter_add_project_partner</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form"/>
+      <field name="arch" type="xml">
+        <field name="vat" position="after">
+          <field name="project" widget='many2many_tags'/>
+        </field>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="filter_add_project_sale">
+      <field name="name">filter_add_project_sale</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form"/>
+      <field name="arch" type="xml">
+        <field name="partner_id" position="after">
+          <field name="batch_lines_by"/>
+          <field name="project" attrs="{'invisible':[('batch_lines_by','=',False)],'required':[('batch_lines_by','in',['emp','proj'])]}"/>
+        </field>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="filter_add_project_inv">
+      <field name="name">filter_add_project_inv</field>
+      <field name="model">account.move</field>
+      <field name="inherit_id" ref="account.view_move_form"/>
+      <field name="arch" type="xml">
+        <field name="ref" position="after">
+          <field name="batch_lines_by"/>
+          <field name="project" attrs="{'invisible':[('state','not in',['out_invoice','out_refund']),('batch_lines_by','=',False)],'required':[('batch_lines_by','in',['emp','proj'])]}"/>
+          <field name="project_contract" attrs="{'invisible':[('project','=',False)]}"/>
+        </field>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="filter_add_project_side">
+      <field name="name">filter_add_project_side</field>
+      <field name="model">hr.employee</field>
+      <field name="inherit_id" ref="hr.view_employee_filter"/>
+      <field name="arch" type="xml">
+        <field name="department_id" position="after">
+          <field name="project"/>
+        </field>
+      </field>
+    </record>
+    <record id="remove_restriction_employee" model="ir.rule">
+      <field name="name">Remove Restriction From Manager</field>
+      <field ref="hr.model_hr_employee" name="model_id"/>
+      <field name="domain_force">[]</field>
+      <field name="groups" eval="[(4, ref('hr.group_hr_manager'))]"/>
+    </record>
+    <record id="employee_restriction_project" model="ir.rule">
+      <field name="name">Employee Restriction Project</field>
+      <field ref="hr.model_hr_employee" name="model_id"/>
+      <field name="domain_force"> ['|',('user_id','=',user.id),('project', '=', user.x_project.id)] </field>
+      <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+    </record>
+    <record model="ir.ui.view" id="view_xperts_project">
+      <field name="name">view_xperts_project</field>
+      <field name="model">xperts.project</field>
+      <field name="arch" type="xml">
+          <form string="Projects">
+            <sheet>
+                <div class="oe_title">
+                    <h1>
+                        <field name="name" placeholder="Project Name"/>
+                    </h1>
+                </div>
+                <group>
+                  <field name="responsables_ids" widget="many2many_tags"/>
+                  <field name="members_ids" widget="many2many_tags"/>
+                  <field name="service_id"/>
+                  <field name="project_contract"/>
+                  <field name="company_id"/>
+
+                </group>
+            </sheet>
+            <div class="oe_chatter">
+                <field name="message_follower_ids" widget="mail_followers"/>
+                <field name="activity_ids" widget="mail_activity"/>
+                <field name="message_ids" widget="mail_thread"/>
+            </div>
+          </form>
+      </field>
+    </record>
+
+    <record id="payslip_cert_request_print" model="ir.ui.view">
+        <field name="name">payslip_cert_request_print</field>
+        <field name="model">hr.payslip.cert.print</field>
+        <field name="arch" type="xml">
+        <form string="Request Salary Certificate">
+            <form class="o_form_label">Choose The Bank</form>
+            <group>
+              <field name="bank" required="1"/>
+            </group>
+            <footer>
+                <button string="Request" name="check_report" type="object" default_focus="1" class="btn-primary"/>
+                <button string="Cancel" class="btn-secondary" special="cancel"/>
+            </footer>
+        </form>
+        </field>
+    </record>
+    <record id="payslip_request_print" model="ir.ui.view">
+        <field name="name">payslip_request_print</field>
+        <field name="model">hr.payslip.print</field>
+        <field name="arch" type="xml">
+        <form string="Request Payslip">
+            <form class="o_form_label">Choose The Date Of The Salary Slip</form>
+            <group>
+              <field name="date_from" required="1"/>
+              <field name="date_to" required="1"/>
+            </group>
+            <footer>
+                <button string="Request" name="check_report" type="object" default_focus="1" class="btn-primary"/>
+                <button string="Cancel" class="btn-secondary" special="cancel"/>
+            </footer>
+        </form>
+        </field>
+    </record>
+    <record id="salaryslipwiz_action" model="ir.actions.act_window">
+      <field name="name">Salary Slip</field>
+      <field name="res_model">hr.payslip.print</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="payslip_request_print"/>
+      <field name="target">new</field>
+    </record>
+    <menuitem id="salaryslipwiz_menu" action="salaryslipwiz_action" name="PaySlip Request" web_icon="xperts_employee,static/src/img/payslip.png"/>
+    <record id="salarycertwiz_action" model="ir.actions.act_window">
+      <field name="name">Salary Certificate</field>
+      <field name="res_model">hr.payslip.cert.print</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="payslip_cert_request_print"/>
+      <field name="target">new</field>
+    </record>
+    <menuitem id="salarycertwiz_menu" action="salarycertwiz_action" name="Salary Certificate Request" web_icon="xperts_employee,static/src/img/certificate.png"/>
+    <record model="ir.ui.view" id="view_hr_payslip_xperts">
+      <field name="name">Xperts Payslip EXT</field>
+      <field name="model">hr.payslip</field>
+      <field name="inherit_id" ref="hr_payroll_community.view_hr_payslip_form"/>
+      <field name="arch" type="xml">
+        <data>
+          <header position="inside">
+            <button name="print_salary_certificate" string="Print" type="object"/>
+          </header>
+          <field name="payslip_run_id" position="after">
+            <field name="bank"/>
+          </field>
+        </data>
+      </field>
+    </record>
+    <record model="ir.ui.view" id="view_hr_data_xperts">
+      <field name="name">Xperts Employee EXT</field>
+      <field name="model">hr.employee</field>
+      <field name="inherit_id" ref="hr.view_employee_form"/>
+      <field name="arch" type="xml">
+        <data>
+          <field name="user_id" position="after">
+            <field name="address_home_id" string="Related Partner"/>
+          </field>
+          <xpath expr="//form/sheet/notebook/page[@name='public']" position="before">
+            <page string="General">
+              <group>
+                <field name="emp_category"/>
+              </group>
+            </page>
+          </xpath>
+          <xpath expr="//form/sheet/notebook/page[@name='public']" position="after">
+            <page string="Health Page">
+              <group>
+                <group string="Medical Insurance">
+                  <field name="medical_insurance_co"/>
+                  <field name="medical_insurance_coverage"/>
+                  <field name="medical_insurance_plicy_no"/>
+                  <field name="medical_insurance_cn"/>
+                  <field name="medical_insurance_start"/>
+                  <field name="medical_insurance_expiry"/>
+                </group>
+                <group>
+                  <group string="Pre Employment">
+                    <field name="pre_employment_medical" string="Medical"/>
+                    <field name="pre_emp_medical_date"/>
+                    <field name="pre_emp_medical_end"/>
+                  </group>
+                  <group string="Other">
+                    <field name="blood_group"/>
+                    <field name="fitness_status"/>
+                    <field name="fitness_document"/>
+                    <field name="health_card_number"/>
+                    <field name="health_card_expairation_date"/>
+                  </group>
+                </group>
+              </group>
+
+            </page>
+            <page string="Permits Page">
+              <group>
+                <group string="Armed Force">
+                  <field name="armed_force"/>
+                  <field name="armed_force_issue_date"/>
+                  <field name="armed_force_expairy_date"/>
+                </group>
+                <group string="FTA">
+                  <field name="fta_card"/>
+                  <field name="fta_issue_date"/>
+                  <field name="fta_card_expairy_date"/>
+                </group>
+              </group>
+              <group>
+                <group string="HAAD">
+                  <field name="haad"/>
+                  <field name="haad_issue_date"/>
+                  <field name="haad_expairy_date"/>
+                </group>
+                <group string="Marine">
+                  <field name="marine_coc"/>
+                  <field name="marine_issue_date"/>
+                  <field name="marine_coc_expairy_date"/>
+                  <field name="marine_medical"/>
+                  <field name="marine_medical_expairy_date"/>
+                </group>
+              </group>
+              <group>
+                <group string="CICPA">
+                  <field name="cicpa_on_shore"/>
+                  <field name="cicpa_on_shore_issue_date"/>
+                  <field name="cicpa_on_shore_expairy_date"/>
+                  <field name="cicpa_on_shore_card"/>
+                </group>
+                <group string="CICPA">
+                  <field name="cicpa_off_shore"/>
+                  <field name="cicpa_off_shore_issue_date"/>
+                  <field name="cicpa_off_shore_expairy_date"/>
+                  <field name="cicpa_off_shore_card"/>
+                </group>
+              </group>
+              <group>
+                <group string="OPTIMA">
+                  <field name="optima"/>
+                  <field name="optima_issue_date"/>
+                  <field name="optima_expairy_date"/>
+                </group>
+                <group string="ADAC">
+                  <field name="adac"/>
+                  <field name="adac_issue_date"/>
+                  <field name="adac_expairy_date"/>
+                </group>
+              </group>
+              <group>
+                <group string="ADP">
+                  <field name="adp_gate_pass"/>
+                  <field name="adp_issue_date"/>
+                  <field name="adp_gate_pass_expairy_date"/>
+                </group>
+                <group string="Other">
+                  <field name="client_management_approval"/>
+                  <field name="issue_date"/>
+                  <field name="expirt_date"/>
+                </group>
+              </group>
+            </page>
+            <page string="Salary Details">
+              <group>
+                <group string="SALARY DETAILS">
+                  <field name="basic_act"/>
+                  <field name="housing_allowance"/>
+                  <field name="transport_act"/>
+                  <field name="cost_living_allowance"/>
+                  <field name="food_allowance_act"/>
+                  <field name="telephone_act"/>
+                  <field name="fuel_act"/>
+                  <field name="social_allowance"/>
+                  <field name="other_allowance_act"/>
+                  <field name="airfare_allowance"/>
+                  <field name="remote_allowance"/>
+                  <field name="mawaqif_allowance"/>
+                  <field name="hra_act"/>
+                  <field name="monthly_earning_act"/>
+                </group>
+                <group string="PAYMENT Details">
+                  <field name="payment_type"/>
+                  <field name="currency"/>
+                  <field name="bank_name"/>
+                  <field name="bank_country"/>
+                  <field name="routing_bank_code"/>
+                  <field name="swift_code"/>
+                  <field name="bank_account_number"/>
+                  <field name="iban"/>
+                </group>
+              </group>
+              <group string="INCREMENTS">
+                <field name="increment_1"/>
+                <field name="effective_date_1"/>
+                <field name="increment_2"/>
+                <field name="effective_date_2"/>
+              </group>
+            </page>
+            <page string="Leaves">
+              <group>
+                <group>
+                  <field name="pay_group"/>
+                  <field name="sick_leave"/>
+                  <field name="maternity_leave"/>
+                  <field name="haj_leave"/>
+                  <field name="annual_leave"/>
+                  <field name="paternity_leave"/>
+                  <field name="negative_leave"/>
+                  <field name="sick_leave_bf"/>
+                </group>
+                <group>
+                  <field name="maternity_leave_bf"/>
+                  <field name="haj_leave_bf"/>
+                  <field name="unpaid_leave_bf"/>
+                  <field name="annual_leave_bf"/>
+                  <field name="paternity_leave_bf"/>
+                  <field name="ctc"/>
+                  <field name="lop_days"/>
+                  <field name="rational"/>
+                </group>
+              </group>
+            </page>
+            <page string='Dependents'>
+              <field name="employee_dependents">
+                <tree name="dependents_tree">
+                  <field name="name"/>
+                  <field name="relation"/>
+                  <field name="dob"/>
+                  <field name="visa_num"/>
+                  <field name="passport_num"/>
+                  <field name="eid_no"/>
+                  <field name="photo"/>
+                  <field name="prev_visa"/>
+                  <field name="coc"/>
+                  <field name="birth_cert"/>
+                </tree>
+              </field>
+            </page>
+            <!-- <xpath expr="//form/sheet/notebook/page[2]/group/group[2]" position="attributes">
+              <attribute name="invisible">1</attribute>
+            </xpath> -->
+            <!-- <field name="certificate" postition="attributes">
+              <attribute name="string">Degree</attribute>
+            </field>
+            <field name="study_field" postition="attributes">
+              <attribute name="string">Discipline</attribute>
+            </field>
+            <field name="study_school" postition="attributes">
+              <attribute name="string">School Name(University/ College)</attribute>
+            </field> -->
+            <page string="Visa and Passport">
+              <group string="Citizenship">
+                <field name="father_name"/>
+                <field name="mother_name"/>
+                <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                <field name="passport_id" />
+                <field name="passport_issue_date" />
+                <field name="passport_expairation"/>
+                <field name="passport_issue_place"/>
+                <field name="gender"/>
+                <field name="birthday"/>
+                <field name="place_of_birth" />
+                <field name="country_of_birth" />
+                <field name="home_country" />
+                <field name="emirates_id_number"/>
+                <field name="emirates_id_card_number"/>
+                <field name="eid_issue_date"/>
+                <field name="emirates_id_expairy_date"/>
+                <!-- <field name="identification_id" /> -->
+              </group>
+              <group string="Visa and Work Permit">
+                <field name="visa_no"/>
+                <field name="visa_issue_place"/>
+                <field name="visa_company"/>
+                <field name="visa_issue_date"/>
+                <field name="visa_expire"/>
+                <field name="labor_no" string="Personal Labor No"/>
+                <field name="labor_card_no"/>
+                <field name="labor_card_expiry"/>
+              </group>
+            </page>
+          </xpath>
+          <!-- <xpath expr="//form/sheet/notebook/page[2]/group/group[6]/field[@name='visa_no']" position="attributes">
+            <attribute name="invisible">1</attribute>
+          </xpath>
+          <xpath expr="//form/sheet/notebook/page[2]/group/group[6]/field[@name='visa_expire']" position="attributes">
+            <attribute name="invisible">1</attribute>
+          </xpath> -->
+          <field name="country_of_birth" position="after">
+            <field name="eid_issue_date"/>
+            <field name="work_permit_number"/>
+            <field name="uid_no"/>
+          </field>
+          <field name="address_id" position="before">
+            <field name="job_id"/>
+            <field name="job_visa"/>
+            <field name="company_assignment"/>
+            <field name="work_location" string="Job Location"/>
+          </field>
+          <xpath expr="//form/sheet/group/group[1]/field[@name='work_location']" position="attributes">
+            <attribute name="invisible">1</attribute>
+          </xpath>
+          <field name="address_id" position="after">
+            <field name="date_of_joining"/>
+            <field name="position"/>
+            <field name="start_work_order"/>
+            <field name="end_work_order"/>
+            <field name="project"/>
+            <field name="branch"/>
+            <field name="probation_period"/>
+            <field name="notice_period"/>
+            <field name="travel_class"/>
+            <field name="airticket_date_eligibilty"/>
+            <field name="emp_status" groups="base.group_user"/>
+            <field name="sponsor_details"/>
+            <!-- <field name="revision_date"/>
+            <field name="applicable_date"/>
+            <field name="service_duration"/> -->
+          </field>
+          <xpath expr="//form/sheet/notebook/page/div/div/group[4]" position="after">
+            <group string="Custody">
+              <field name="custody_item_1"/>
+              <field name="custody_item_2"/>
+              <field name="custody_item_3"/>
+              <field name="custody_item_4"/>
+            </group>
+          </xpath>
+          <field name="parent_id" position="after">
+            <field name="internal_user"/>
+            <field name="arabic_name"/>
+            <field name="offboarding"/>
+            <field name="offboarding_date" attrs="{'invisible':[('offboarding','=',False)]}"/>
+            <field name="offboarding_reason" attrs="{'invisible':[('offboarding','=',False)]}"/>
+          </field>
+          <field name="company_id" position="after">
+            <field name="xperts_company"/>
+            <field name="service_id"/>
+          </field>
+          <xpath expr="//form/sheet/group/group[2]/field[@name='job_id']" position="attributes">
+            <attribute name="invisible">1</attribute>
+          </xpath>
+          <xpath expr="//form/sheet/group/group/field[@name='work_email']" position="attributes">
+            <attribute name="invisible">1</attribute>
+          </xpath>
+          <xpath expr="//form/sheet/notebook/page[@name='personal_information']" position="inside">
+            <group string="Personal">
+              <field name="employee_number"/>
+              <field name="full_name_passport"/>
+              <field name="uae_mobile"/>
+              <field name="work_email"/>
+              <field name="home_contact"/>
+              <field name="home_address_perm"/>
+              <field name="sos_person"/>
+              <field name="sos_contact"/>
+              <field name="sos_phone"/>
+              <field name="driving_licence_number"/>
+              <field name="driving_licence_issue_place"/>
+              <field name="driving_licence_expairation_date"/>
+              <field name="contry_origin"/>
+            </group>
+            <group string="Other">
+              <field name="code"/>
+              <field name="international_phone"/>
+              <field name="place"/>
+              <field name="permenant_residance_ic_no"/>
+            </group>
+            <group string="Transportation">
+              <field name="trade_license"/>
+              <field name="trade_license_expiary_date"/>
+              <field name="eirs_car_plates"/>
+              <field name="eirs_car_plates_expairy_date"/>
+              <field name="last_air_ticket_date"/>
+            </group>
+          </xpath>
+        </data>
+      </field>
+    </record>
+
+    <!-- <record id="xperts_blood_groups_action" model="ir.actions.act_window">
+      <field name="name">Blood Groups</field>
+      <field name="res_model">xperts.blood.groups</field>
+      <field name="view_mode">tree,form</field>
+    </record> -->
+    <record id="xperts_sponsor_details_action" model="ir.actions.act_window">
+      <field name="name">Sponsor Details</field>
+      <field name="res_model">xperts.sponsor.details</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_payment_types_action" model="ir.actions.act_window">
+      <field name="name">Payment Types</field>
+      <field name="res_model">xperts.payment.type</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_banks_action" model="ir.actions.act_window">
+      <field name="name">Banks</field>
+      <field name="res_model">xperts.banks</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <!-- <record id="xperts_bank_code_action" model="ir.actions.act_window">
+      <field name="name">Bank Codes</field>
+      <field name="res_model">xperts.bank.code</field>
+      <field name="view_mode">tree,form</field>
+    </record> -->
+    <record id="xperts_travel_class_action" model="ir.actions.act_window">
+      <field name="name">Travel Classes</field>
+      <field name="res_model">xperts.travel.class</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_emp_status_action" model="ir.actions.act_window">
+      <field name="name">Employee Status</field>
+      <field name="res_model">xperts.emp.status</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_pay_group_action" model="ir.actions.act_window">
+      <field name="name">Pay Groups</field>
+      <field name="res_model">xperts.pay.group</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_project_action" model="ir.actions.act_window">
+      <field name="name">Projects</field>
+      <field name="res_model">xperts.project</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_project_contract_action" model="ir.actions.act_window">
+      <field name="name">Projects Contract</field>
+      <field name="res_model">xperts.project.contract</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_employee_category_action" model="ir.actions.act_window">
+      <field name="name">Employee Categories</field>
+      <field name="res_model">xperts.emp.category</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_companies_action" model="ir.actions.act_window">
+      <field name="name">Companies</field>
+      <field name="res_model">xperts.company</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record model="ir.ui.view" id="email_compose_message_wizard_form_project">
+        <field name="name">mail.compose.message.form.project</field>
+        <field name="model">mail.compose.message</field>
+        <field name="groups_id" eval="[(4,ref('base.group_user'))]"/>
+        <field name="arch" type="xml">
+            <form string="Compose Email">
+                <group>
+                    <!-- truly invisible fields for control and options -->
+                    <field name="composition_mode" invisible="1"/>
+                    <field name="model" invisible="1"/>
+                    <field name="res_id" invisible="1"/>
+                    <field name="is_log" invisible="1"/>
+                    <field name="parent_id" invisible="1"/>
+                    <field name="mail_server_id" invisible="1"/>
+                    <field name="active_domain" invisible="1"/>
+
+                    <!-- Various warnings -->
+                    <div colspan="2" class="oe_form_box_info bg-info oe_text_center"
+                            attrs="{'invisible': [('active_domain', '=', False)]}">
+                        <p attrs="{'invisible': [('use_active_domain', '=', False)]}">
+                            <strong>
+                                All records matching your current search filter will be mailed,
+                                not only the ids selected in the list view.
+                            </strong><br />
+                            The email will be sent for all the records selected in the list.<br />
+                            Confirming this wizard will probably take a few minutes blocking your browser.
+                        </p>
+                        <p attrs="{'invisible': [('use_active_domain', '=', True)]}">
+                            <strong>Only records checked in list view will be used.</strong><br />
+                            The email will be sent for all the records selected in the list.
+                        </p>
+                        <p class="mt8">
+                            <span attrs="{'invisible': [('use_active_domain', '=', True)]}">
+                                If you want to send it for all the records matching your search criterion, check this box :
+                            </span>
+                            <span attrs="{'invisible': [('use_active_domain', '=', False)]}">
+                                If you want to use only selected records please uncheck this selection box :
+                            </span>
+                            <field class="oe_inline" name="use_active_domain"/>
+                        </p>
+                    </div>
+                    <!-- visible wizard -->
+                    <field name="email_from"
+                        attrs="{'invisible':[('composition_mode', '!=', 'mass_mail')]}"/>
+                    <field name="project" placeholder="Project..."/>
+                    <label for="partner_ids" string="Recipients"  attrs="{'invisible': [('is_log', '=', True)]}" groups="base.group_user"/>
+                    <div groups="base.group_user" attrs="{'invisible': [('is_log', '=', True)]}">
+                        <span attrs="{'invisible': [('composition_mode', '!=', 'mass_mail')]}">
+                            <strong>Email mass mailing</strong> on
+                            <span attrs="{'invisible': [('use_active_domain', '=', True)]}">the selected records</span>
+                            <span attrs="{'invisible': [('use_active_domain', '=', False)]}">the current search filter</span>.
+                        </span>
+                        <span name="document_followers_text" attrs="{'invisible':['|', ('model', '=', False), ('composition_mode', '=', 'mass_mail')]}">Followers of the document and</span>
+                        <field name="partner_ids" widget="many2many_tags_email" placeholder="Add contacts to notify..."
+                            context="{'force_email':True, 'show_email':True}"
+                            attrs="{'invisible': [('composition_mode', '!=', 'comment')]}"/>
+                    </div>
+                    <field name="subject" placeholder="Subject..." required="True"/>
+                    <!-- mass post -->
+                    <field name="notify"
+                        attrs="{'invisible':['|', ('composition_mode', '!=', 'mass_post')]}"/>
+                    <!-- mass mailing -->
+                    <field name="no_auto_thread" attrs="{'invisible':[('composition_mode', '!=', 'mass_mail')]}"/>
+                    <field name="reply_to" placeholder="Email address to redirect replies..."
+                        attrs="{'invisible':['|', ('no_auto_thread', '=', False), ('composition_mode', '!=', 'mass_mail')],
+                                'required':[('no_auto_thread', '=', True), ('composition_mode', '=', 'mass_mail')]}"/>
+                </group>
+                <field name="body" options="{'style-inline': true}"/>
+                <group col="4">
+                    <field name="attachment_ids" widget="many2many_binary" string="Attach a file" nolabel="1" colspan="2"/>
+                    <field name="template_id" options="{'no_create': True}"
+                           context="{'default_model': model, 'default_body_html': body, 'default_subject': subject}"/>
+                </group>
+                <footer>
+                    <button string="Send" attrs="{'invisible': [('is_log', '=', True)]}" name="action_send_mail" type="object" class="btn-primary o_mail_send"/>
+                    <button string="Log" attrs="{'invisible': [('is_log', '=', False)]}" name="action_send_mail" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+
+                    <button icon="fa-lg fa-save" type="object" name="save_as_template" string="Save as new template"
+                            class="float-right btn-secondary" help="Save as a new template"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_mail_wizard" model="ir.actions.act_window">
+      <field name="name">Announcement</field>
+      <field name="res_model">mail.compose.message</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref='xperts_employee.email_compose_message_wizard_form_project'/>
+      <field name="target">new</field>
+    </record>
+    <menuitem id="new_mail_wiz" action="action_mail_wizard" name="Announcement" sequence="1" web_icon="xperts_employee,static/src/img/announcement.png"/>
+    <!-- <menuitem id="xperts_blood_groups_menu" action="xperts_blood_groups_action" name="Blood Groups" parent="hr.menu_human_resources_configuration"/> -->
+    <menuitem id="xperts_sponsor_details_menu" action="xperts_sponsor_details_action" name="Sponsor Details" parent="hr.menu_human_resources_configuration"/>
+    <menuitem id="xperts_payment_types_menu" action="xperts_payment_types_action" name="Payment Types" parent="hr.menu_human_resources_configuration"/>
+    <!-- <menuitem id="xperts_bank_code_menu" action="xperts_bank_code_action" name="Bank Codes" parent="hr.menu_human_resources_configuration"/> -->
+    <menuitem id="xperts_banks_menu" action="xperts_banks_action" name="Banks" parent="hr_payroll_community.menu_hr_payroll_community_configuration"/>
+    <menuitem id="xperts_travel_class_menu" action="xperts_travel_class_action" name="Travel Classes" parent="hr.menu_human_resources_configuration"/>
+    <menuitem id="xperts_emp_status_menu" action="xperts_emp_status_action" name="Employee Status" parent="hr.menu_human_resources_configuration"/>
+    <menuitem id="xperts_pay_group_menu" action="xperts_pay_group_action" name="Pay Groups" parent="hr.menu_human_resources_configuration"/>
+
+    <menuitem id="xperts_employee_category_menu" action="xperts_employee_category_action" name="Employee Categories" parent="hr.menu_human_resources_configuration"/>
+    <menuitem id="xperts_companies_menu" action="xperts_companies_action" name="Companies" parent="hr.menu_human_resources_configuration"/>
+    <!-- NEW -->
+    <record id="xperts_insurance_coverage_action" model="ir.actions.act_window">
+      <field name="name">Insurance Coverage</field>
+      <field name="res_model">xperts.insurance.coverage</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_fitness_status_action" model="ir.actions.act_window">
+      <field name="name">Fitness Status</field>
+      <field name="res_model">xperts.fitness.status</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    <record id="xperts_offboarding_reasons_action" model="ir.actions.act_window">
+      <field name="name">Offboarding Reason</field>
+      <field name="res_model">xperts.offboarding.reasons</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="xperts_insurance_coverage_menu" action="xperts_insurance_coverage_action" name="Insurance Coverage" parent="hr.menu_human_resources_configuration"/>
+    <menuitem id="xperts_fitness_status_menu" action="xperts_fitness_status_action" name="Fitness Status" parent="hr.menu_human_resources_configuration"/>
+
+    <menuitem id="xperts_project_menu_root" name="Projects" web_icon="xperts_employee,static/src/img/Project.png"/>
+    <menuitem id="xperts_project_menu" action="xperts_project_action" name="Projects" parent="xperts_employee.xperts_project_menu_root"/>
+    <menuitem id="xperts_project_contract_menu" action="xperts_project_contract_action" name="Projects Contact" parent="xperts_employee.xperts_project_menu_root"/>
+    <menuitem id="xperts_offboarding_reasons_menu" action="xperts_offboarding_reasons_action" name="Offboarding Reason" parent="hr.menu_human_resources_configuration"/>
+
+  </data>
+</odoo>
+<!-- <field name="salary_account"/>
+<field name="emp_account"/>
+<field name="acc_no"/> -->

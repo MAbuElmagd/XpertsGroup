@@ -1,0 +1,93 @@
+nnginx[[[[[[[
+upstream odooserver
+     server 127.0.0.1:8069;
+ }
+
+ server {
+     listen [::]:80;
+     listen 80;
+
+     server_name clearpathcanada.ca www.clearpathcanada.ca;
+
+     return 301 https://clearpathcanada.ca$request_uri;
+ }
+
+ server {
+     listen [::]:443 ssl;
+     listen 443 ssl;
+
+     server_name clearpathcanada.ca;
+
+     ssl_certificate /etc/letsencrypt/live/domainname.com/fullchain.pem;
+     ssl_certificate_key /etc/letsencrypt/live/domainname.com/privkey.pem;
+
+     return 301 https://clearpathcanada.ca$request_uri;
+ }
+
+ server {
+     listen [::]:443 ssl http2;
+     listen 443 ssl http2;
+
+     server_name clearpathcanada.ca;
+
+     ssl_certificate /etc/letsencrypt/live/domainname.com/fullchain.pem;
+     ssl_certificate_key /etc/letsencrypt/live/domainname.com/privkey.pem;
+
+     access_log /var/log/nginx/odoo_access.log;
+     error_log /var/log/nginx/odoo_error.log;
+
+     proxy_read_timeout 720s;
+     proxy_connect_timeout 720s;
+     proxy_send_timeout 720s;
+     proxy_set_header X-Forwarded-Host $host;
+     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+     proxy_set_header X-Forwarded-Proto $scheme;
+     proxy_set_header X-Real-IP $remote_addr;
+
+     location / {
+        proxy_redirect off;
+        proxy_pass http://odooserver;
+     }
+ l
+
+     location ~* /web/static/ {
+         proxy_cache_valid 200 90m;
+         proxy_buffering on;
+         expires 864000;
+         proxy_pass http://odooserver;
+     }
+
+     gzip_types text/css text/less text/plain text/xml application/xml application/json application/javascript;
+     gzip on;
+ }
+
+]]]]]]]]
+xpertserver[[[[[[
+2.50.161.190
+root/erp
+Q41324gx@214
+]]]]]]]]]]]
+font of odoo base [[[[[[[
+..oe_signup_form {
+  max-width: 80%;
+}
+@font-face {
+font-family: 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Google+Sans';
+font-style: normal;
+font-weight: 400;
+src: url(/your_module/static/src/fonts/your_file_name.ttf) format('truetype');
+}
+ 
+*:not(.fa),.nvd3 text {
+  font-family: 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Google+Sans' !important;
+}
+.navbar-nav.team_menu .nav-item.active{
+  background-color:#e1e5ec;
+}
+and add this in XML
+    <template id="assets_backend" inherit_id="web.assets_backend" name="Website BackendAssets">
+     <xpath expr="//link[last()]" position="after">
+     <link rel="stylesheet" type="text/css" href="your_module/static/src/css/style.css"/>
+     </xpath>
+     </template>
+]]]]]]]

@@ -1,0 +1,228 @@
+<odoo>
+    <data>
+      <report
+          id="report_payslip_inhert"
+          model="report.xperts_employee.paysliprepinher"
+          string="Salary Slip"
+          report_type="qweb-pdf"
+          name="xperts_employee.paysliprepinher"
+          file="xperts_employee.paysliprepinher"
+          />
+      <report
+          id="report_payslip_cert_inhert"
+          model="hr.payslip.cert.print"
+          string="Salary Certificate"
+          report_type="qweb-pdf"
+          name="xperts_employee.salarycertwiz"
+          file="xperts_employee.salarycertwiz"
+          />
+      <report
+          id="payslip_salary_certificate"
+          model="hr.payslip"
+          string="Salary Certificate"
+          report_type="qweb-pdf"
+          name="xperts_employee.salarycert"
+          file="xperts_employee.salarycert"
+          />
+          <template id="paysliprepinher">
+              <t t-call="web.html_container">
+                  <t t-foreach="docs" t-as="o">
+                      <t t-call="web.external_layout">
+                          <div class="page">
+                              <h2>Pay Slip</h2>
+                              <table class="table table-sm table-bordered">
+                                  <tr>
+                                      <td><strong>Name</strong></td>
+                                      <td><span t-field="payslip[0].employee_id.name"/></td>
+                                      <td><strong>Designation</strong></td>
+                                      <td><span t-field="payslip[0].employee_id.job_id.name"/></td>
+                                  </tr>
+                                  <tr>
+                                      <td><strong>Address</strong></td>
+                                      <td colspan="3">
+                                          <div t-field="payslip[0].employee_id.address_home_id"
+                                              t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                                      </td>
+                                  </tr>
+                                  <tr>
+                                      <td><strong>Email</strong></td>
+                                      <td><span t-field="payslip[0].employee_id.work_email"/></td>
+                                      <td><strong>Identification No</strong></td>
+                                      <td><span t-field="payslip[0].employee_id.identification_id"/></td>
+                                  </tr>
+                                  <!-- <tr>
+                                      <td><strong>Reference</strong></td>
+                                      <td><span t-field="payslip.number"/></td>
+                                      <td><strong>Bank Account</strong></td>
+                                      <td><span t-field="payslip.employee_id.bank_account_id"/></td>
+                                  </tr> -->
+                                  <tr>
+                                      <td><strong>Date From</strong></td>
+                                      <td><span t-field="docs.date_from"/></td>
+                                      <td><strong>Date To</strong></td>
+                                      <td><span t-field="docs.date_to"/></td>
+                                  </tr>
+                              </table>
+
+                              <h3>Details by Salary Rule Category</h3>
+                              <table class="table table-sm mb32">
+                                  <thead>
+                                      <tr>
+                                          <th>Code</th>
+                                          <th>Salary Rule Category</th>
+                                          <th>Total</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                    <t t-foreach="payslip" t-as="p">
+                                      <tr t-foreach="get_details_by_rule_category.get(p.id, [])" t-as="h">
+                                          <td>
+                                              <span t-esc="h['code']"/>
+                                          </td>
+                                          <td>
+                                              <span t-esc="'..'*h['level']"/><span t-esc="h['rule_category']"/>
+                                          </td>
+                                          <td class="text-right">
+                                              <span t-esc="h['total']"
+                                                    t-esc-options='{"widget": "monetary", "display_currency": p.company_id.currency_id}'/>
+                                          </td>
+                                      </tr>
+                                    </t>
+                                  </tbody>
+                              </table>
+
+                              <h3>Payslip Lines by Contribution Register</h3>
+                              <table class="table table-sm mt32">
+                                  <thead>
+                                      <tr>
+                                          <th>Code</th>
+                                          <th>Name</th>
+                                          <th>Quantity/rate</th>
+                                          <th>Amount</th>
+                                          <th>Total</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                    <t t-foreach="payslip" t-as="p">
+                                      <tr t-foreach="get_lines_by_contribution_register.get(p.id, [])" t-as="p">
+                                          <td><span t-esc="p.get('code', '')"/></td>
+                                          <td><span t-esc="p.get('name', '')"/></td>
+                                          <td><span t-esc="p.get('quantity', '')"/></td>
+                                          <td><span t-esc="p.get('amount', 0)"/></td>
+                                          <td class="text-right">
+                                              <span t-esc="p.get('total', 0)"
+                                                    t-esc-options='{"widget": "monetary", "display_currency": p.company_id.currency_id}'/>
+                                          </td>
+                                      </tr>
+                                    </t>
+                                  </tbody>
+                              </table>
+
+                              <p class="text-right"><strong>Authorized signature</strong></p>
+                          </div>
+                      </t>
+                  </t>
+              </t>
+          </template>
+          <template id="salarycertwiz">
+            <t t-call="web.html_container">
+              <t t-call="web.external_layout">
+                <t t-foreach="docs" t-as="o">
+                  <div class="page">
+                    <table>
+                      <tr><td  class="text-left"><span class="text-left" t-field="payslip.create_date"/></td></tr>
+                      <tr><td  class="text-left"><span class="text-left" t-field="payslip.name"/></td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left">To Whome It May Concern</td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left"><b>Subject:Employeement Letter</b></td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left">This certifies that the under mentioned employee is an employee of Experts International Recruitment Service :</td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left">Name: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.name"/></td></tr>
+                      <tr><td  class="text-left">Nationality: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.country_id.name"/></td></tr>
+                      <tr><td  class="text-left">Passport No: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.passport_id"/></td></tr>
+                      <tr><td  class="text-left">Position: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.job_visa.name"/></td></tr>
+                      <tr><td  class="text-left">Company Assignment: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.xperts_company.name"/></td></tr>
+                      <tr><td  class="text-left">Joining Date: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.date_of_joining"/></td></tr>
+                      <tr><td  class="text-left">Employee Status: </td><td  class="text-left"><span class="text-left" t-field="payslip.employee_id.emp_status.name"/></td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left">This certificate is issued upon the request of that employee without any obligation whatsoever from the part of Experts International Recruitment Services company</td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left">Note: </td></tr>
+                    </table>
+                    <br/>
+                    <table>
+                      <tr><td  class="text-left">* This certificate is valid for one month from the date of issue.</td></tr>
+                      <tr><td  class="text-left">* A certificate without company stamp is null and void.</td></tr>
+                      <tr><td  class="text-left">* Any alternation made invalidates this document.</td></tr>
+                    </table>
+                  </div>
+                </t>
+              </t>
+            </t>
+          </template>
+      <template id="salarycert">
+        <t t-call="web.html_container">
+          <t t-call="web.external_layout">
+            <t t-foreach="docs" t-as="o">
+              <div class="page">
+                <table>
+                  <tr><td  class="text-left"><span class="text-left" t-field="o.create_date"/></td></tr>
+                  <tr><td  class="text-left"><span class="text-left" t-field="o.name"/></td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left">To Whome It May Concern</td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left"><b>Subject:Employeement Letter</b></td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left">This certifies that the under mentioned employee is an employee of Experts International Recruitment Service :</td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left">Name: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.name"/></td></tr>
+                  <tr><td  class="text-left">Nationality: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.country_id.name"/></td></tr>
+                  <tr><td  class="text-left">Passport No: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.passport_id"/></td></tr>
+                  <tr><td  class="text-left">Position: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.job_visa.name"/></td></tr>
+                  <tr><td  class="text-left">Company Assignment: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.xperts_company.name"/></td></tr>
+                  <tr><td  class="text-left">Joining Date: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.date_of_joining"/></td></tr>
+                  <tr><td  class="text-left">Employee Status: </td><td  class="text-left"><span class="text-left" t-field="o.employee_id.emp_status.name"/></td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left">This certificate is issued upon the request of that employee without any obligation whatsoever from the part of Experts International Recruitment Services company</td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left">Note: </td></tr>
+                </table>
+                <br/>
+                <table>
+                  <tr><td  class="text-left">* This certificate is valid for one month from the date of issue.</td></tr>
+                  <tr><td  class="text-left">* A certificate without company stamp is null and void.</td></tr>
+                  <tr><td  class="text-left">* Any alternation made invalidates this document.</td></tr>
+                </table>
+              </div>
+            </t>
+          </t>
+        </t>
+      </template>
+            </data>
+</odoo>

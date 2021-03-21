@@ -1,0 +1,61 @@
+<odoo>
+  <data>
+    <record model="ir.ui.view" id="faq_form_view">
+     <field name="name">faq_view</field>
+     <field name="model">faq.faq</field>
+     <field name="arch" type="xml">
+         <form string="FAQ">
+           <sheet>
+                   <h1>
+                       <field name="question" placeholder="Ask a Question" required="True"/>
+                   </h1>
+               <group>
+                 <field name="solution" placeholder="Place the normal solution" required="True"/>
+                     <field name="video" widget="url" />
+                     <field name="attachment" />
+                 <field name="tags" widget="many2many_tags"/>
+                 <field name="category"/>
+               </group>
+           </sheet>
+           <div class="oe_chatter">
+               <field name="message_follower_ids" widget="mail_followers"/>
+               <field name="activity_ids" widget="mail_activity"/>
+               <field name="message_ids" widget="mail_thread"/>
+           </div>
+         </form>
+     </field>
+
+   </record>
+     <record model="ir.actions.act_window" id="faq.action_window">
+      <field name="name">FAQ</field>
+      <field name="res_model">faq.faq</field>
+      <field name="view_mode">kanban,tree,form</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="faqtag">
+      <field name="name">Tags</field>
+      <field name="res_model">faq.tag</field>
+      <field name="view_mode">kanban,tree,form</field>
+    </record>
+    <record model="ir.actions.act_window" id="faq_categories">
+      <field name="name">Category</field>
+      <field name="res_model">faq.category</field>
+      <field name="view_mode">kanban,tree,form</field>
+    </record>
+    <!-- server action to the one above -->
+
+
+
+    <!-- Top menu item -->
+
+    <menuitem name="Guide" id="faq.menu_root" sequence="150" web_icon="faq,static/src/img/faq.png"/>
+    <menuitem name="FAQ" id="faq.faq_menu" parent="faq.menu_root"
+              action="faq.action_window"/>
+              <menuitem name="Tags" id="faq.tag_menu" parent="faq.menu_root"
+                        action="faqtag"/>
+    <menuitem name="Category" id="faq.category_menu" parent="faq.menu_root"
+              action="faq_categories"/>
+
+
+  </data>
+</odoo>
